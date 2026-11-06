@@ -61,7 +61,8 @@ function domainNote(email, company) {
 const prospects = $json.structuredContent.result.prospects || [];
 if (!prospects.length) throw new Error('The export returned no leads. Check the search in Sales Navigator.');
 const leads = prospects.map(p => {
-  const months = (num(p['Years in Position']) || 0) * 12 + (num(p['Months in Position']) || 0);
+  const years = num(p['Years in Position']), mos = num(p['Months in Position']);
+  const months = years === null && mos === null ? null : (years || 0) * 12 + (mos || 0);
   return {
     id: p['Linkedin URL Unique ID'] || p['Linkedin URL Public'] || p['Full Name'],
     first_name: p['First Name'] || '', last_name: p['Last Name'] || '', name: p['Full Name'] || '',
@@ -69,7 +70,7 @@ const leads = prospects.map(p => {
     email_check: domainNote(p['Email'] || '', p['Company Domain']),
     title: String(p['Current Job'] || '').trim(), company: p['Company Name'] || '',
     months_in_role: months,
-    new_in_role: ['true', 'yes', '1'].includes(String(p['Has New Position']).toLowerCase()) || months < 6,
+    new_in_role: ['true', 'yes', '1'].includes(String(p['Has New Position']).toLowerCase()) || (months !== null && months < 6),
     headline: words(p['Profile Headline']), summary: words(p['Profile Summary']).slice(0, 700),
     company_description: words(p['Company Description']).slice(0, 400),
     company_growth_1y_pct: num(p['Company Employee Growth 1 Year (%)']), sales_team: num(p['Sales Team Size']),
